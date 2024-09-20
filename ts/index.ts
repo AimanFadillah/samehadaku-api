@@ -12,6 +12,11 @@ interface Episode {
     posted?:string,
 }
 
+interface Producers {
+    title:string,
+    slug:string,
+}
+
 interface Anime {
     title:string,
     image:string | undefined,
@@ -25,7 +30,7 @@ interface Anime {
         title:string,
         slug:string
     },
-    producers?:string,
+    producers?:Producers[],
     synopsis?:string,
     status?:string,
     source?:string,
@@ -158,6 +163,13 @@ app.get("/anime/:slug",async (req : Request,res : Response) => {
             slug:$(li).find(".epsleft > .lchx > a").attr("href")?.split("/")[3] || "",
         })
     });
+    const producers : Producers[] = [];
+    $(".spe > span").eq(10).find("a").each((index,a) => {
+        producers.push({
+            title:$(a).text(),
+            slug:formatSlug("producers",$(a).attr("href") || "")
+        })
+    })
     const anime : Anime = {
         title:$("h1.entry-title").text(),
         image:$(".infoanime > .thumb > img").attr("src"),
@@ -171,8 +183,6 @@ app.get("/anime/:slug",async (req : Request,res : Response) => {
             title:$(".spe > span").eq(8).find("a").text(),
             slug:formatSlug("season",$(".spe > span").eq(8).find("a").attr("href") || "")
         },
-
-        producers:$(".spe > span").eq(10).html()?.split("\u003C/b\u003E")[1].trim() || "",
         synopsis:$(".spe > span").eq(1).html()?.split("\u003C/b\u003E")[1].trim() || "",
         status:$(".spe > span").eq(3).html()?.split("\u003C/b\u003E")[1].trim() || "",
         source:$(".spe > span").eq(5).html()?.split("\u003C/b\u003E")[1].trim() || "",
@@ -186,6 +196,7 @@ app.get("/anime/:slug",async (req : Request,res : Response) => {
         released:$(".spe > span").eq(11).html()?.split("\u003C/b\u003E")[1].trim() || "",
         trailer:$(".player-embed > iframe").attr("src") || "",
         genre,
+        producers,
         episode
     }
     return res.json(anime);

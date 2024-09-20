@@ -134,7 +134,7 @@ app.get("/anime", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     return res.json(animes);
 }));
 app.get("/anime/:slug", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a, _b, _c, _d, _e, _f, _g, _h;
+    var _a, _b, _c, _d, _e, _f, _g;
     const slug = req.params.slug;
     const response = yield configAxios(`/anime/${slug}/`);
     const $ = cheerio.load(response.data);
@@ -155,6 +155,13 @@ app.get("/anime/:slug", (req, res) => __awaiter(void 0, void 0, void 0, function
             slug: ((_a = $(li).find(".epsleft > .lchx > a").attr("href")) === null || _a === void 0 ? void 0 : _a.split("/")[3]) || "",
         });
     });
+    const producers = [];
+    $(".spe > span").eq(10).find("a").each((index, a) => {
+        producers.push({
+            title: $(a).text(),
+            slug: formatSlug("producers", $(a).attr("href") || "")
+        });
+    });
     const anime = {
         title: $("h1.entry-title").text(),
         image: $(".infoanime > .thumb > img").attr("src"),
@@ -167,18 +174,18 @@ app.get("/anime/:slug", (req, res) => __awaiter(void 0, void 0, void 0, function
             title: $(".spe > span").eq(8).find("a").text(),
             slug: formatSlug("season", $(".spe > span").eq(8).find("a").attr("href") || "")
         },
-        producers: ((_c = $(".spe > span").eq(10).html()) === null || _c === void 0 ? void 0 : _c.split("\u003C/b\u003E")[1].trim()) || "",
-        synopsis: ((_d = $(".spe > span").eq(1).html()) === null || _d === void 0 ? void 0 : _d.split("\u003C/b\u003E")[1].trim()) || "",
-        status: ((_e = $(".spe > span").eq(3).html()) === null || _e === void 0 ? void 0 : _e.split("\u003C/b\u003E")[1].trim()) || "",
-        source: ((_f = $(".spe > span").eq(5).html()) === null || _f === void 0 ? void 0 : _f.split("\u003C/b\u003E")[1].trim()) || "",
-        total_episode: ((_g = $(".spe > span").eq(7).html()) === null || _g === void 0 ? void 0 : _g.split("\u003C/b\u003E")[1].trim()) || "",
+        synopsis: ((_c = $(".spe > span").eq(1).html()) === null || _c === void 0 ? void 0 : _c.split("\u003C/b\u003E")[1].trim()) || "",
+        status: ((_d = $(".spe > span").eq(3).html()) === null || _d === void 0 ? void 0 : _d.split("\u003C/b\u003E")[1].trim()) || "",
+        source: ((_e = $(".spe > span").eq(5).html()) === null || _e === void 0 ? void 0 : _e.split("\u003C/b\u003E")[1].trim()) || "",
+        total_episode: ((_f = $(".spe > span").eq(7).html()) === null || _f === void 0 ? void 0 : _f.split("\u003C/b\u003E")[1].trim()) || "",
         studio: {
             title: $(".spe > span").eq(9).find("a").text(),
             slug: formatSlug("studio", $(".spe > span").eq(9).find("a").attr("href") || "")
         },
-        released: ((_h = $(".spe > span").eq(11).html()) === null || _h === void 0 ? void 0 : _h.split("\u003C/b\u003E")[1].trim()) || "",
+        released: ((_g = $(".spe > span").eq(11).html()) === null || _g === void 0 ? void 0 : _g.split("\u003C/b\u003E")[1].trim()) || "",
         trailer: $(".player-embed > iframe").attr("src") || "",
         genre,
+        producers,
         episode
     };
     return res.json(anime);
