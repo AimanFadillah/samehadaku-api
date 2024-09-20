@@ -49,6 +49,7 @@ const port = 5000;
 const configAxios = axios.create({
     headers:{
         "User-Agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36",
+        "Origin" : "https://samehadaku.email"
     },
     baseURL:"https://samehadaku.email"
 });
@@ -78,6 +79,29 @@ app.get("/",async (req : Request,res : Response) => {
     })
     return res.json(episodes);
 })
+
+app.get("/episode",async (req:Request,res:Response) => {
+    const episodes : Episode[] = [] ;
+    const page = req.query.page || 1;
+    const response = await configAxios.get(`/anime-terbaru/page/${page}`);
+    console.log(cheerio);
+    const $ = cheerio.load(response.data);
+    $(".post-show").find("ul > li").each((index,li) => {
+        episodes.push({
+            title:$(li).find("h2").text(),
+            image:$(li).find(".thumb > a > img").attr("src"),
+            episode:$(li).find(".dtla > span").eq(0).find("author").text(),
+            posted:$(li).find(".dtla > span").eq(1).find("author").text(),
+            date:($(li).find(".dtla > span").eq(2).text()).split(" Released on: ")[1],
+            slug:$(li).find("h2 > a").attr("href")?.split("/")[3] || "",
+        })
+    })
+    return res.json(episodes);
+});
+
+app.get("/episode/:slug",async (req:Request,res:Response) => {
+    
+});
 
 app.get("/filter",async (req:Request,res:Response) => {
     const response = await configAxios.get("/daftar-anime-2");
@@ -200,6 +224,23 @@ app.get("/anime/:slug",async (req : Request,res : Response) => {
         episode
     }
     return res.json(anime);
+});
+
+app.get("/iframe",async (req:Request,res:Response) => {
+    const post = String(req.query.post);
+    const nume = String(req.query.nume);
+    if(post === "undefined" || nume === "undefined"){
+        return res.status(400).json({msg:"post and nume is required"});
+    }
+    const formData = new FormData();
+    formData.append("action","player_ajax");
+    formData.append("post",post);
+    formData.append("nume",nume);
+    formData.append("type","schtml");
+    const response = await configAxios.post("https://samehadaku.email/wp-admin/admin-ajax.php",formData);
+    const $ = cheerio.load(response.data);
+    const iframe = $("iframe").attr("src");
+    return res.send({iframe});
 });
 
 app.listen(port,() : void => console.log("Server on"))
