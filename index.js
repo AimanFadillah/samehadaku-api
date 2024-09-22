@@ -104,8 +104,9 @@ app.get("/episode/:slug/", (req, res) => __awaiter(void 0, void 0, void 0, funct
         slug === "producers" ||
         slug === "studio" ||
         slug === "season" ||
-        slug === "genre") {
-        return res.status(404).send("Anime tidak ditemukan");
+        slug === "genre" ||
+        slug === "jadwal-rilis") {
+        return res.status(404).send("Episode tidak ditemukan");
     }
     const genre = [];
     $(".genre-info > a").each((index, a) => {
@@ -339,5 +340,129 @@ app.get("/iframe", (req, res) => __awaiter(void 0, void 0, void 0, function* () 
     const $ = cheerio.load(response.data);
     const iframe = $("iframe").attr("src");
     return res.send({ iframe });
+}));
+app.get("/season/:slug", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const animes = [];
+    const page = req.query.page || 1;
+    const slug = req.params.slug || undefined;
+    const response = yield configAxios.get(`/season/${slug}/page/${page}`);
+    const $ = cheerio.load(response.data);
+    const title = $("title").text();
+    if (title == "samehadaku.care | Instagram, Facebook, TikTok | LinktreeFacebookInstagramGoogle Play StoreTikTok") {
+        return res.status(404).send("Season tidak ditemukan");
+    }
+    $(".relat").find("article").each((index, article) => {
+        const genre = [];
+        $(article).find(".stooltip > .genres > .mta > a").each((index, a) => {
+            genre.push({
+                title: $(a).text(),
+                slug: formatSlug("genre", $(a).attr("href") || "")
+            });
+        });
+        animes.push({
+            title: $(article).find(".data > .title").text(),
+            image: $(article).find(".content-thumb > img").attr("src"),
+            rating: $(article).find(".score").text().trim(),
+            status: $(article).find(".data > .type").text(),
+            type: $(article).find(".stooltip > .metadata > span").eq(1).text(),
+            synopsis: $(article).find(".stooltip > .ttls").text(),
+            genre,
+            slug: formatSlug("anime", $(article).find("a").attr("href") || ""),
+        });
+    });
+    return res.json(animes);
+}));
+app.get("/genre/:slug", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const animes = [];
+    const page = req.query.page || 1;
+    const slug = req.params.slug || undefined;
+    const response = yield configAxios.get(`/genre/${slug}/page/${page}`);
+    const $ = cheerio.load(response.data);
+    const title = $("title").text();
+    if (title == "samehadaku.care | Instagram, Facebook, TikTok | LinktreeFacebookInstagramGoogle Play StoreTikTok") {
+        return res.status(404).send("Genre tidak ditemukan");
+    }
+    $(".relat").find("article").each((index, article) => {
+        const genre = [];
+        $(article).find(".stooltip > .genres > .mta > a").each((index, a) => {
+            genre.push({
+                title: $(a).text(),
+                slug: formatSlug("genre", $(a).attr("href") || "")
+            });
+        });
+        animes.push({
+            title: $(article).find(".data > .title").text(),
+            image: $(article).find(".content-thumb > img").attr("src"),
+            rating: $(article).find(".score").text().trim(),
+            status: $(article).find(".data > .type").text(),
+            type: $(article).find(".stooltip > .metadata > span").eq(1).text(),
+            synopsis: $(article).find(".stooltip > .ttls").text(),
+            genre,
+            slug: formatSlug("anime", $(article).find("a").attr("href") || ""),
+        });
+    });
+    return res.json(animes);
+}));
+app.get("/studio/:slug", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const animes = [];
+    const page = req.query.page || 1;
+    const slug = req.params.slug || undefined;
+    const response = yield configAxios.get(`/studio/${slug}/page/${page}`);
+    const $ = cheerio.load(response.data);
+    const title = $("title").text();
+    if (title == "samehadaku.care | Instagram, Facebook, TikTok | LinktreeFacebookInstagramGoogle Play StoreTikTok") {
+        return res.status(404).send("Studio tidak ditemukan");
+    }
+    $(".relat").find("article").each((index, article) => {
+        const genre = [];
+        $(article).find(".stooltip > .genres > .mta > a").each((index, a) => {
+            genre.push({
+                title: $(a).text(),
+                slug: formatSlug("genre", $(a).attr("href") || "")
+            });
+        });
+        animes.push({
+            title: $(article).find(".data > .title").text(),
+            image: $(article).find(".content-thumb > img").attr("src"),
+            rating: $(article).find(".score").text().trim(),
+            status: $(article).find(".data > .type").text(),
+            type: $(article).find(".stooltip > .metadata > span").eq(1).text(),
+            synopsis: $(article).find(".stooltip > .ttls").text(),
+            genre,
+            slug: formatSlug("anime", $(article).find("a").attr("href") || ""),
+        });
+    });
+    return res.json(animes);
+}));
+app.get("/producer/:slug", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const animes = [];
+    const page = req.query.page || 1;
+    const slug = req.params.slug || undefined;
+    const response = yield configAxios.get(`/producers/${slug}/page/${page}`);
+    const $ = cheerio.load(response.data);
+    const title = $("title").text();
+    if (title == "samehadaku.care | Instagram, Facebook, TikTok | LinktreeFacebookInstagramGoogle Play StoreTikTok") {
+        return res.status(404).send("Producer tidak ditemukan");
+    }
+    $(".relat").find("article").each((index, article) => {
+        const genre = [];
+        $(article).find(".stooltip > .genres > .mta > a").each((index, a) => {
+            genre.push({
+                title: $(a).text(),
+                slug: formatSlug("genre", $(a).attr("href") || "")
+            });
+        });
+        animes.push({
+            title: $(article).find(".data > .title").text(),
+            image: $(article).find(".content-thumb > img").attr("src"),
+            rating: $(article).find(".score").text().trim(),
+            status: $(article).find(".data > .type").text(),
+            type: $(article).find(".stooltip > .metadata > span").eq(1).text(),
+            synopsis: $(article).find(".stooltip > .ttls").text(),
+            genre,
+            slug: formatSlug("anime", $(article).find("a").attr("href") || ""),
+        });
+    });
+    return res.json(animes);
 }));
 app.listen(port, () => console.log("Server on"));
