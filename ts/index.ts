@@ -3,6 +3,18 @@ import cors from "cors";
 import axios from "axios";
 import * as cheerio from 'cheerio';
 
+type Link = {
+    title:string,
+    link:string
+}
+type Format = "mkv" | "mp4" | "x265"
+type Quality  = "d360p" | "d480p" | "d720p" | "d1080p"
+
+interface Slug {
+    title:string,
+    slug:string,
+}
+
 interface Episode {
     title:string,
     date:string,
@@ -12,10 +24,6 @@ interface Episode {
     posted?:string,
 }
 
-interface Producers {
-    title:string,
-    slug:string,
-}
 
 interface Anime {
     title:string,
@@ -24,24 +32,43 @@ interface Anime {
     rating?:string,
     type?:string,
     description?:string
-    genre?:string[],
+    genre?:Slug[],
     duration?:string,
-    season?:{
-        title:string,
-        slug:string
-    },
-    producers?:Producers[],
+    season?:Slug,
+    producers?:Slug[],
     synopsis?:string,
     status?:string,
     source?:string,
     total_episode?:string,
-    studio?:{
-        title:string,
-        slug:string
-    },
+    studio?:Slug,
     released?:string,
     trailer?:string,
     episode?:Episode[],
+}
+
+interface Download {
+    d360p?:Link[],
+    d480p?:Link[],
+    d720p?:Link[],
+    d1080p?:Link[],
+}
+
+interface FormatDownload {
+    mkv?:Download,
+    mp4?:Download,
+    x265?:Download,
+}
+
+interface Iframe {
+    title:string,
+    post:string,
+    nume:number,
+    type?:string
+}
+
+interface Streaming extends Anime {
+    iframe:Iframe[],
+    downloads?:FormatDownload,
 }
 
 const app = express();
@@ -99,8 +126,112 @@ app.get("/episode",async (req:Request,res:Response) => {
     return res.json(episodes);
 });
 
-app.get("/episode/:slug",async (req:Request,res:Response) => {
-    
+app.get("/episode/:slug/",async (req:Request,res:Response) => {
+    const slug = req.params.slug;
+    const response = await configAxios.get(`https://samehadaku.email/${slug}/`);
+    const $ = cheerio.load(response.data);
+    const title = $("title").text();
+    if(
+        title === "samehadaku.care | Instagram, Facebook, TikTok | LinktreeFacebookInstagramGoogle Play StoreTikTok" ||
+        title === "Anime Terbaru - Samehadaku" ||
+        title === "Daftar Anime - Samehadaku" ||
+        title === "Jadwal Rilis - Samehadaku" ||
+        slug === "anime" ||
+        slug === "producers" ||
+        slug === "studio" ||
+        slug === "season" ||
+        slug === "genre" 
+    ){
+        return res.status(404).send("Anime tidak ditemukan");
+    }
+    const genre : Slug[] = []
+    $(".genre-info > a").each((index,a) => {
+        genre.push({
+            title:$(a).text(),
+            slug:formatSlug("genre",$(a).attr("href") || "")
+        })
+    })
+    const episode : Episode[] = []
+    $(".lstepsiode > ul > li").each((index,li) => {
+        episode.push({
+            title:$(li).find("a").text(),
+            date:$(li).find("span.date").text(),
+            slug:$(li).find("a").attr("href")?.split("/")[3] || "",
+        })
+    })
+    const downloads : FormatDownload = {
+        mkv:{
+            d360p:[],
+            d480p:[],
+            d720p:[],
+            d1080p:[]
+        },
+        mp4:{
+            d360p:[],
+            d480p:[],
+            d720p:[],
+            d1080p:[]
+        },
+        x265:{
+            d360p:[],
+            d480p:[],
+            d720p:[],
+            d1080p:[]
+        }
+    };
+    $(".download-eps").each((index,divDownload) => {
+        let textFormat : string = ($(divDownload).find("p").text()).toLocaleLowerCase();
+        let format : Format = "mp4"
+        if(textFormat.includes("mkv")){
+            format = "mkv"
+        }else if (textFormat.includes("x265")){
+            format = "x265"
+        }
+        $(divDownload).find("ul > li").each((index,li) => {
+            let textQuality : string = ($(li).find("strong").text()).toLocaleLowerCase().trim();
+            let quality : Quality = "d360p";
+            if(textQuality.includes("480")){
+                quality = "d480p"
+            }else if(textQuality.includes("720") || textQuality.includes("mp4hd")){
+                quality = "d720p"
+            }else if(textQuality.includes("1080") || textQuality.includes("fullhd")){
+                quality = "d1080p"
+            }
+            $(li).find("span").each((index,span) => {
+                const link : Link = {
+                    title:$(span).find("a").text(),
+                    link:$(span).find("a").attr("href") || ""
+                }
+                const downloadFormat = downloads[format];
+                if(downloadFormat){
+                    downloadFormat[quality]?.push(link);
+                }
+            })  
+        });
+
+        downloads[format]
+    })
+    const iframe : Iframe[]  = []
+    $("#server > ul > li").each((index,li) => {
+        iframe.push({
+            title:$(li).find("div > span").text(),
+            post:$(li).find("div").attr("data-post") || "",
+            nume:parseInt($(li).find("div").attr("data-nume") || ""),
+            type:$(li).find("div").attr("schtml"),
+        })
+    })
+    const streaming : Streaming = {
+        title:$(".lm > h1.entry-title").text(),
+        slug,
+        image:$(".areainfo > .thumb > img").attr("src"),
+        synopsis:$(".infox > .desc").text().replace(/\s+/g, ' ').trim(),
+        genre,
+        episode,
+        downloads,
+        iframe,
+    }
+
+    return res.json(streaming);
 });
 
 app.get("/filter",async (req:Request,res:Response) => {
@@ -149,9 +280,12 @@ app.get("/anime",async (req : Request,res : Response) => {
     })
     const $ = cheerio.load(response.data);
     $(".relat").find("article").each((index,article) => {
-        const genre : string[] = [];
+        const genre : Slug[] = [];
         $(article).find(".stooltip > .genres > .mta > a").each((index,a) => {
-            genre.push($(a).text());
+            genre.push({
+               title:$(a).text(),
+               slug:formatSlug("genre",$(a).attr("href") || "")
+            });
         })
         animes.push({
             title:$(article).find(".data > .title").text(),
@@ -159,7 +293,7 @@ app.get("/anime",async (req : Request,res : Response) => {
             rating:$(article).find(".score").text().trim(),
             status:$(article).find(".data > .type").text(),
             type:$(article).find(".stooltip > .metadata > span").eq(1).text(),
-            description:$(article).find(".stooltip > .ttls").text(),
+            synopsis:$(article).find(".stooltip > .ttls").text(),
             genre,
             slug:formatSlug("anime",$(article).find("a").attr("href") || ""),
         })
@@ -175,9 +309,12 @@ app.get("/anime/:slug",async (req : Request,res : Response) => {
     if(title == "samehadaku.care | Instagram, Facebook, TikTok | LinktreeFacebookInstagramGoogle Play StoreTikTok"){
         return res.status(404).send("Anime tidak ditemukan");
     }
-    const genre : string[] = [];
+    const genre : Slug[] = [];
     $(".genre-info > a").each((index,a) => {
-        genre.push($(a).text());
+        genre.push({
+            title:$(a).text(),
+            slug:formatSlug("genre",$(a).attr("href") || "")
+        });    
     })
     const episode : Episode[] = [];
     $(".lstepsiode > ul > li").each((index,li) => {
@@ -187,7 +324,7 @@ app.get("/anime/:slug",async (req : Request,res : Response) => {
             slug:$(li).find(".epsleft > .lchx > a").attr("href")?.split("/")[3] || "",
         })
     });
-    const producers : Producers[] = [];
+    const producers : Slug[] = [];
     $(".spe > span").eq(10).find("a").each((index,a) => {
         producers.push({
             title:$(a).text(),
@@ -199,7 +336,7 @@ app.get("/anime/:slug",async (req : Request,res : Response) => {
         image:$(".infoanime > .thumb > img").attr("src"),
         slug:formatSlug("anime",(response.config.url) || ""),
         rating:$(".clearfix > span").text(),
-        description:$(".entry-content > p").text(),
+        synopsis:$(".entry-content > p").text(),
         type:$(".spe > span").eq(4).html()?.split("\u003C/b\u003E")[1].trim() || "",
         duration:$(".spe > span").eq(6).html()?.split("\u003C/b\u003E")[1].trim() || "",
 
@@ -207,7 +344,7 @@ app.get("/anime/:slug",async (req : Request,res : Response) => {
             title:$(".spe > span").eq(8).find("a").text(),
             slug:formatSlug("season",$(".spe > span").eq(8).find("a").attr("href") || "")
         },
-        synopsis:$(".spe > span").eq(1).html()?.split("\u003C/b\u003E")[1].trim() || "",
+        // synopsis:$(".spe > span").eq(1).html()?.split("\u003C/b\u003E")[1].trim() || "",
         status:$(".spe > span").eq(3).html()?.split("\u003C/b\u003E")[1].trim() || "",
         source:$(".spe > span").eq(5).html()?.split("\u003C/b\u003E")[1].trim() || "",
         total_episode:$(".spe > span").eq(7).html()?.split("\u003C/b\u003E")[1].trim() || "",

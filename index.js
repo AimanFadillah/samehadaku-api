@@ -91,7 +91,113 @@ app.get("/episode", (req, res) => __awaiter(void 0, void 0, void 0, function* ()
     });
     return res.json(episodes);
 }));
-app.get("/episode/:slug", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+app.get("/episode/:slug/", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const slug = req.params.slug;
+    const response = yield configAxios.get(`https://samehadaku.email/${slug}/`);
+    const $ = cheerio.load(response.data);
+    const title = $("title").text();
+    if (title === "samehadaku.care | Instagram, Facebook, TikTok | LinktreeFacebookInstagramGoogle Play StoreTikTok" ||
+        title === "Anime Terbaru - Samehadaku" ||
+        title === "Daftar Anime - Samehadaku" ||
+        title === "Jadwal Rilis - Samehadaku" ||
+        slug === "anime" ||
+        slug === "producers" ||
+        slug === "studio" ||
+        slug === "season" ||
+        slug === "genre") {
+        return res.status(404).send("Anime tidak ditemukan");
+    }
+    const genre = [];
+    $(".genre-info > a").each((index, a) => {
+        genre.push({
+            title: $(a).text(),
+            slug: formatSlug("genre", $(a).attr("href") || "")
+        });
+    });
+    const episode = [];
+    $(".lstepsiode > ul > li").each((index, li) => {
+        var _a;
+        episode.push({
+            title: $(li).find("a").text(),
+            date: $(li).find("span.date").text(),
+            slug: ((_a = $(li).find("a").attr("href")) === null || _a === void 0 ? void 0 : _a.split("/")[3]) || "",
+        });
+    });
+    const downloads = {
+        mkv: {
+            d360p: [],
+            d480p: [],
+            d720p: [],
+            d1080p: []
+        },
+        mp4: {
+            d360p: [],
+            d480p: [],
+            d720p: [],
+            d1080p: []
+        },
+        x265: {
+            d360p: [],
+            d480p: [],
+            d720p: [],
+            d1080p: []
+        }
+    };
+    $(".download-eps").each((index, divDownload) => {
+        let textFormat = ($(divDownload).find("p").text()).toLocaleLowerCase();
+        let format = "mp4";
+        if (textFormat.includes("mkv")) {
+            format = "mkv";
+        }
+        else if (textFormat.includes("x265")) {
+            format = "x265";
+        }
+        $(divDownload).find("ul > li").each((index, li) => {
+            let textQuality = ($(li).find("strong").text()).toLocaleLowerCase().trim();
+            let quality = "d360p";
+            if (textQuality.includes("480")) {
+                quality = "d480p";
+            }
+            else if (textQuality.includes("720") || textQuality.includes("mp4hd")) {
+                quality = "d720p";
+            }
+            else if (textQuality.includes("1080") || textQuality.includes("fullhd")) {
+                quality = "d1080p";
+            }
+            $(li).find("span").each((index, span) => {
+                var _a;
+                const link = {
+                    title: $(span).find("a").text(),
+                    link: $(span).find("a").attr("href") || ""
+                };
+                const downloadFormat = downloads[format];
+                if (downloadFormat) {
+                    (_a = downloadFormat[quality]) === null || _a === void 0 ? void 0 : _a.push(link);
+                }
+            });
+        });
+        downloads[format];
+    });
+    const iframe = [];
+    $("#server > ul > li").each((index, li) => {
+        iframe.push({
+            title: $(li).find("div > span").text(),
+            post: $(li).find("div").attr("data-post") || "",
+            nume: parseInt($(li).find("div").attr("data-nume") || ""),
+            type: $(li).find("div").attr("schtml"),
+        });
+    });
+    const streaming = {
+        title: $(".lm > h1.entry-title").text(),
+        slug,
+        image: $(".areainfo > .thumb > img").attr("src"),
+        synopsis: $(".infox > .desc").text().replace(/\s+/g, ' ').trim(),
+        genre,
+        episode,
+        downloads,
+        iframe,
+    };
+    return res.json(streaming);
 }));
 app.get("/filter", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const response = yield configAxios.get("/daftar-anime-2");
@@ -140,7 +246,10 @@ app.get("/anime", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     $(".relat").find("article").each((index, article) => {
         const genre = [];
         $(article).find(".stooltip > .genres > .mta > a").each((index, a) => {
-            genre.push($(a).text());
+            genre.push({
+                title: $(a).text(),
+                slug: formatSlug("genre", $(a).attr("href") || "")
+            });
         });
         animes.push({
             title: $(article).find(".data > .title").text(),
@@ -148,7 +257,7 @@ app.get("/anime", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
             rating: $(article).find(".score").text().trim(),
             status: $(article).find(".data > .type").text(),
             type: $(article).find(".stooltip > .metadata > span").eq(1).text(),
-            description: $(article).find(".stooltip > .ttls").text(),
+            synopsis: $(article).find(".stooltip > .ttls").text(),
             genre,
             slug: formatSlug("anime", $(article).find("a").attr("href") || ""),
         });
@@ -156,7 +265,7 @@ app.get("/anime", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     return res.json(animes);
 }));
 app.get("/anime/:slug", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a, _b, _c, _d, _e, _f, _g;
+    var _a, _b, _c, _d, _e, _f;
     const slug = req.params.slug;
     const response = yield configAxios(`/anime/${slug}/`);
     const $ = cheerio.load(response.data);
@@ -166,7 +275,10 @@ app.get("/anime/:slug", (req, res) => __awaiter(void 0, void 0, void 0, function
     }
     const genre = [];
     $(".genre-info > a").each((index, a) => {
-        genre.push($(a).text());
+        genre.push({
+            title: $(a).text(),
+            slug: formatSlug("genre", $(a).attr("href") || "")
+        });
     });
     const episode = [];
     $(".lstepsiode > ul > li").each((index, li) => {
@@ -189,22 +301,22 @@ app.get("/anime/:slug", (req, res) => __awaiter(void 0, void 0, void 0, function
         image: $(".infoanime > .thumb > img").attr("src"),
         slug: formatSlug("anime", (response.config.url) || ""),
         rating: $(".clearfix > span").text(),
-        description: $(".entry-content > p").text(),
+        synopsis: $(".entry-content > p").text(),
         type: ((_a = $(".spe > span").eq(4).html()) === null || _a === void 0 ? void 0 : _a.split("\u003C/b\u003E")[1].trim()) || "",
         duration: ((_b = $(".spe > span").eq(6).html()) === null || _b === void 0 ? void 0 : _b.split("\u003C/b\u003E")[1].trim()) || "",
         season: {
             title: $(".spe > span").eq(8).find("a").text(),
             slug: formatSlug("season", $(".spe > span").eq(8).find("a").attr("href") || "")
         },
-        synopsis: ((_c = $(".spe > span").eq(1).html()) === null || _c === void 0 ? void 0 : _c.split("\u003C/b\u003E")[1].trim()) || "",
-        status: ((_d = $(".spe > span").eq(3).html()) === null || _d === void 0 ? void 0 : _d.split("\u003C/b\u003E")[1].trim()) || "",
-        source: ((_e = $(".spe > span").eq(5).html()) === null || _e === void 0 ? void 0 : _e.split("\u003C/b\u003E")[1].trim()) || "",
-        total_episode: ((_f = $(".spe > span").eq(7).html()) === null || _f === void 0 ? void 0 : _f.split("\u003C/b\u003E")[1].trim()) || "",
+        // synopsis:$(".spe > span").eq(1).html()?.split("\u003C/b\u003E")[1].trim() || "",
+        status: ((_c = $(".spe > span").eq(3).html()) === null || _c === void 0 ? void 0 : _c.split("\u003C/b\u003E")[1].trim()) || "",
+        source: ((_d = $(".spe > span").eq(5).html()) === null || _d === void 0 ? void 0 : _d.split("\u003C/b\u003E")[1].trim()) || "",
+        total_episode: ((_e = $(".spe > span").eq(7).html()) === null || _e === void 0 ? void 0 : _e.split("\u003C/b\u003E")[1].trim()) || "",
         studio: {
             title: $(".spe > span").eq(9).find("a").text(),
             slug: formatSlug("studio", $(".spe > span").eq(9).find("a").attr("href") || "")
         },
-        released: ((_g = $(".spe > span").eq(11).html()) === null || _g === void 0 ? void 0 : _g.split("\u003C/b\u003E")[1].trim()) || "",
+        released: ((_f = $(".spe > span").eq(11).html()) === null || _f === void 0 ? void 0 : _f.split("\u003C/b\u003E")[1].trim()) || "",
         trailer: $(".player-embed > iframe").attr("src") || "",
         genre,
         producers,
