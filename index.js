@@ -236,39 +236,44 @@ app.get("/filter", (req, res) => __awaiter(void 0, void 0, void 0, function* () 
     });
 }));
 app.get("/anime", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const animes = [];
-    const page = req.query.page || 1;
-    const params = {
-        title: req.query.title || "",
-        status: req.query.status || "",
-        type: req.query.type || "",
-        order: req.query.order || "",
-        genre: req.query.genre || ""
-    };
-    const response = yield configAxios.get(`/daftar-anime-2/page/${page}`, {
-        params
-    });
-    const $ = cheerio.load(response.data);
-    $(".relat").find("article").each((index, article) => {
-        const genre = [];
-        $(article).find(".stooltip > .genres > .mta > a").each((index, a) => {
-            genre.push({
-                title: $(a).text(),
-                slug: formatSlug("genre", $(a).attr("href") || "")
+    try {
+        const animes = [];
+        const page = req.query.page || 1;
+        const params = {
+            title: req.query.title || "",
+            status: req.query.status || "",
+            type: req.query.type || "",
+            order: req.query.order || "",
+            genre: req.query.genre || ""
+        };
+        const response = yield configAxios.get(`/daftar-anime-2/page/${page}`, {
+            params
+        });
+        const $ = cheerio.load(response.data);
+        $(".relat").find("article").each((index, article) => {
+            const genre = [];
+            $(article).find(".stooltip > .genres > .mta > a").each((index, a) => {
+                genre.push({
+                    title: $(a).text(),
+                    slug: formatSlug("genre", $(a).attr("href") || "")
+                });
+            });
+            animes.push({
+                title: $(article).find(".data > .title").text(),
+                image: $(article).find(".content-thumb > img").attr("src"),
+                rating: $(article).find(".score").text().trim(),
+                status: $(article).find(".data > .type").text(),
+                type: $(article).find(".stooltip > .metadata > span").eq(1).text(),
+                synopsis: $(article).find(".stooltip > .ttls").text(),
+                genre,
+                slug: formatSlug("anime", $(article).find("a").attr("href") || ""),
             });
         });
-        animes.push({
-            title: $(article).find(".data > .title").text(),
-            image: $(article).find(".content-thumb > img").attr("src"),
-            rating: $(article).find(".score").text().trim(),
-            status: $(article).find(".data > .type").text(),
-            type: $(article).find(".stooltip > .metadata > span").eq(1).text(),
-            synopsis: $(article).find(".stooltip > .ttls").text(),
-            genre,
-            slug: formatSlug("anime", $(article).find("a").attr("href") || ""),
-        });
-    });
-    return res.json(animes);
+        return res.json(animes);
+    }
+    catch (e) {
+        return res.json(e);
+    }
 }));
 app.get("/anime/:slug", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     var _a, _b, _c, _d, _e, _f;

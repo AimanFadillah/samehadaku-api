@@ -272,6 +272,7 @@ app.get("/filter",async (req:Request,res:Response) => {
 });
 
 app.get("/anime",async (req : Request,res : Response) => {
+    try{
     const animes : Anime[] = [];
     const page = req.query.page || 1;
     const params = {
@@ -305,6 +306,9 @@ app.get("/anime",async (req : Request,res : Response) => {
         })
     });
     return res.json(animes);
+    }catch(e){
+        return res.json(e);
+    }
 });
 
 app.get("/anime/:slug",async (req : Request,res : Response) => {
