@@ -75,8 +75,8 @@ const app = express();
 const port = 5000;
 const configAxios = axios.create({
     headers:{
-        "User-Agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36",
-        "Origin" : "https://samehadaku.email",
+        "User-Agent":"PostmanRuntime/7.42.0",
+        // "Origin" : "https://samehadaku.email",
         "Accept" : "*/*",
         "Accept-Encoding" : "gzip, deflate, br",
         "Connection" : "keep-alive"
