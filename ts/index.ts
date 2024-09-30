@@ -74,14 +74,10 @@ interface Streaming extends Anime {
 const app = express();
 const port = 5000;
 const configAxios = axios.create({
-    headers:{
-        "Origin" : "https://samehadaku.email",
-        "Accept" : "*/*",
-        "Accept-Encoding" : "gzip, deflate, br",
-        "Connection" : "keep-alive",
+    headers: {
+        "User-Agent": "PostmanRuntime/7.38.0"
     },
-    withCredentials:true,
-    baseURL:"https://samehadaku.email"
+    baseURL: "https://samehadaku.email/"
 });
 app.use(cors());
 

@@ -43,13 +43,9 @@ const app = (0, express_1.default)();
 const port = 5000;
 const configAxios = axios_1.default.create({
     headers: {
-        "Origin": "https://samehadaku.email",
-        "Accept": "*/*",
-        "Accept-Encoding": "gzip, deflate, br",
-        "Connection": "keep-alive",
+        "User-Agent": "PostmanRuntime/7.38.0"
     },
-    withCredentials: true,
-    baseURL: "https://samehadaku.email"
+    baseURL: "https://samehadaku.email/"
 });
 app.use((0, cors_1.default)());
 function formatSlug(type, link) {
