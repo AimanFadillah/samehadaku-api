@@ -75,12 +75,10 @@ const app = express();
 const port = 5000;
 const configAxios = axios.create({
     headers:{
-        "User-Agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36",
         "Origin" : "https://samehadaku.email",
         "Accept" : "*/*",
         "Accept-Encoding" : "gzip, deflate, br",
         "Connection" : "keep-alive",
-        "Cookie" : "HstCfa4389157=1727665703613; HstCla4389157=1727665713029; HstCmu4389157=1727665703613; HstCns4389157=1; HstCnv4389157=1; HstPn4389157=2; HstPt4389157=2; __dtsu=1040172766570420C24F120BE74D0990; _cc_dc=2; _cc_id=4cdf4248077ed14829b71e061b0177b6; _ga=GA1.1.879228956.1727665704; _ga_85V0GD905H=GS1.1.1727664174.15.1.1727665713.0.0.0; _gat_gtag_UA_162751770_1=1; _gid=GA1.2.464297741.1727665704; cookie=49454673c9e757ca; df=1727665704; done_redirects147=1; done_redirects219=1; done_redirects252=1; l=1040172766570420C24F120BE74D0990; m=2; uid=1040172766570420C24F120BE74D0990;"
     },
     withCredentials:true,
     baseURL:"https://samehadaku.email"
