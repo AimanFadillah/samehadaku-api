@@ -44,7 +44,10 @@ const port = 5000;
 const configAxios = axios_1.default.create({
     headers: {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36",
-        "Origin": "https://samehadaku.email"
+        "Origin": "https://samehadaku.email",
+        "Accept": "*/*",
+        "Accept-Encoding": "gzip, deflate, br",
+        "Connection": "keep-alive"
     },
     baseURL: "https://samehadaku.email"
 });
