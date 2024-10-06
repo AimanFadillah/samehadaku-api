@@ -1,4 +1,4 @@
-import express,{Response,Request, response} from "express";
+import express,{Response,Request} from "express";
 import cors from "cors";
 import axios from "axios";
 import * as cheerio from 'cheerio';
@@ -75,7 +75,8 @@ const app = express();
 const port = 5000;
 const configAxios = axios.create({
     headers: {
-        "User-Agent": "PostmanRuntime/7.38.0"
+        "User-Agent": "PostmanRuntime/7.38.0",
+        "Origin":"https://samehadaku.email/"
     },
     baseURL: "https://samehadaku.email/"
 });
@@ -155,6 +156,7 @@ app.get("/episode/:slug/",async (req:Request,res:Response) => {
     $(".lstepsiode > ul > li").each((index,li) => {
         episode.push({
             title:$(li).find("a").text(),
+            image:$(li).find(".epsright > a > img").attr("src") || "",
             date:$(li).find("span.date").text(),
             slug:$(li).find("a").attr("href")?.split("/")[3] || "",
         })
@@ -237,25 +239,37 @@ app.get("/episode/:slug/",async (req:Request,res:Response) => {
 app.get("/filter",async (req:Request,res:Response) => {
     const response = await configAxios.get("/daftar-anime-2");
     const $ = cheerio.load(response.data);
-    const status : any[] = [];
-    const type   : any[] = [];
-    const order  : any[] = [];
-    const genre  : any[] = [];
+    const status : Slug[] = [];
+    const type   : Slug[] = [];
+    const order  : Slug[] = [];
+    const genre  : Slug[] = [];
     $(".filter_act").eq(1).find("label").each((index,label) => {
         if($(label).find("input").attr("value") != ""){
-            status.push($(label).find("input").attr("value"))
+            status.push({
+                title:$(label).text().trim(),
+                slug:$(label).find("input").attr("value") || ""
+            })
         }
     })
     $(".filter_act").eq(2).find("label").each((index,label) => {
         if($(label).find("input").attr("value") != ""){
-            type.push($(label).find("input").attr("value"))
+            type.push({
+                title:$(label).text().trim(),
+                slug:$(label).find("input").attr("value") || ""
+            })
         }
     })
     $(".filter-sort").find("li").each((index,li) => {
-        order.push($(li).find("input").attr("value"));
+        order.push({
+            title:$(li).find("label").text().trim(),
+            slug:$(li).find("input").attr("value") || ""
+        })
     });
     $(".filter_act.genres").find("label").each((index,label) => {
-        genre.push($(label).find("input").attr("value"))
+        genre.push({
+            title:$(label).text().trim(),
+            slug:$(label).find("input").attr("value") || ""
+        })
     })
     return res.json({
         status,

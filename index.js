@@ -43,7 +43,8 @@ const app = (0, express_1.default)();
 const port = 5000;
 const configAxios = axios_1.default.create({
     headers: {
-        "User-Agent": "PostmanRuntime/7.38.0"
+        "User-Agent": "PostmanRuntime/7.38.0",
+        "Origin": "https://samehadaku.email/"
     },
     baseURL: "https://samehadaku.email/"
 });
@@ -119,6 +120,7 @@ app.get("/episode/:slug/", (req, res) => __awaiter(void 0, void 0, void 0, funct
         var _a;
         episode.push({
             title: $(li).find("a").text(),
+            image: $(li).find(".epsright > a > img").attr("src") || "",
             date: $(li).find("span.date").text(),
             slug: ((_a = $(li).find("a").attr("href")) === null || _a === void 0 ? void 0 : _a.split("/")[3]) || "",
         });
@@ -208,19 +210,31 @@ app.get("/filter", (req, res) => __awaiter(void 0, void 0, void 0, function* () 
     const genre = [];
     $(".filter_act").eq(1).find("label").each((index, label) => {
         if ($(label).find("input").attr("value") != "") {
-            status.push($(label).find("input").attr("value"));
+            status.push({
+                title: $(label).text().trim(),
+                slug: $(label).find("input").attr("value") || ""
+            });
         }
     });
     $(".filter_act").eq(2).find("label").each((index, label) => {
         if ($(label).find("input").attr("value") != "") {
-            type.push($(label).find("input").attr("value"));
+            type.push({
+                title: $(label).text().trim(),
+                slug: $(label).find("input").attr("value") || ""
+            });
         }
     });
     $(".filter-sort").find("li").each((index, li) => {
-        order.push($(li).find("input").attr("value"));
+        order.push({
+            title: $(li).find("label").text().trim(),
+            slug: $(li).find("input").attr("value") || ""
+        });
     });
     $(".filter_act.genres").find("label").each((index, label) => {
-        genre.push($(label).find("input").attr("value"));
+        genre.push({
+            title: $(label).text().trim(),
+            slug: $(label).find("input").attr("value") || ""
+        });
     });
     return res.json({
         status,
