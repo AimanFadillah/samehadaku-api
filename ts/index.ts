@@ -67,7 +67,9 @@ interface Iframe {
 }
 
 interface Streaming extends Anime {
-    anime?:String,
+    anime?:string,
+    nextStreaming?:string,
+    previousStreaming?:string,
     iframe:Iframe[],
     downloads?:FormatDownload,
 }
@@ -229,6 +231,8 @@ app.get("/episode/:slug/",async (req:Request,res:Response) => {
         slug,
         image:$(".areainfo > .thumb > img").attr("src"),
         synopsis:$(".infox > .desc").text().replace(/\s+/g, ' ').trim(),
+        previousStreaming:$(".nvs > a").attr("href") || "",
+        nextStreaming:$(".nvs.rght > a").attr("href") || "",
         genre,
         episode,
         downloads,

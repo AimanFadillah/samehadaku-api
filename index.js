@@ -195,6 +195,8 @@ app.get("/episode/:slug/", (req, res) => __awaiter(void 0, void 0, void 0, funct
         slug,
         image: $(".areainfo > .thumb > img").attr("src"),
         synopsis: $(".infox > .desc").text().replace(/\s+/g, ' ').trim(),
+        previousStreaming: $(".nvs > a").attr("href") || "",
+        nextStreaming: $(".nvs.rght > a").attr("href") || "",
         genre,
         episode,
         downloads,
