@@ -67,6 +67,7 @@ interface Iframe {
 }
 
 interface Streaming extends Anime {
+    anime?:String,
     iframe:Iframe[],
     downloads?:FormatDownload,
 }
@@ -223,6 +224,7 @@ app.get("/episode/:slug/",async (req:Request,res:Response) => {
         })
     })
     const streaming : Streaming = {
+        anime:$(".infox > .entry-title").text().replace("Sinopsis Anime ","").replace(" Indo",""),
         title:$(".lm > h1.entry-title").text(),
         slug,
         image:$(".areainfo > .thumb > img").attr("src"),
@@ -232,7 +234,6 @@ app.get("/episode/:slug/",async (req:Request,res:Response) => {
         downloads,
         iframe,
     }
-
     return res.json(streaming);
 });
 

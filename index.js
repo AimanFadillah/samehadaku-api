@@ -190,6 +190,7 @@ app.get("/episode/:slug/", (req, res) => __awaiter(void 0, void 0, void 0, funct
         });
     });
     const streaming = {
+        anime: $(".infox > .entry-title").text().replace("Sinopsis Anime ", "").replace(" Indo", ""),
         title: $(".lm > h1.entry-title").text(),
         slug,
         image: $(".areainfo > .thumb > img").attr("src"),
