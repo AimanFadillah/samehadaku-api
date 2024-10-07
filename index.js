@@ -92,6 +92,7 @@ app.get("/episode", (req, res) => __awaiter(void 0, void 0, void 0, function* ()
     return res.json(episodes);
 }));
 app.get("/episode/:slug/", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a, _b;
     const slug = req.params.slug;
     const response = yield configAxios.get(`https://samehadaku.email/${slug}/`);
     const $ = cheerio.load(response.data);
@@ -195,8 +196,8 @@ app.get("/episode/:slug/", (req, res) => __awaiter(void 0, void 0, void 0, funct
         slug,
         image: $(".areainfo > .thumb > img").attr("src"),
         synopsis: $(".infox > .desc").text().replace(/\s+/g, ' ').trim(),
-        previousStreaming: $(".nvs > a").attr("href") || "",
-        nextStreaming: $(".nvs.rght > a").attr("href") || "",
+        previousStreaming: ((_a = $(".nvs > a").attr("href")) === null || _a === void 0 ? void 0 : _a.split("/")[3]) || "#",
+        nextStreaming: ((_b = $(".nvs.rght > a").attr("href")) === null || _b === void 0 ? void 0 : _b.split("/")[3]) || "#",
         genre,
         episode,
         downloads,
