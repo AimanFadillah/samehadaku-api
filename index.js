@@ -194,6 +194,7 @@ app.get("/episode/:slug/", (req, res) => __awaiter(void 0, void 0, void 0, funct
         anime: $(".infox > .entry-title").text().replace("Sinopsis Anime ", "").replace(" Indo", ""),
         title: $(".lm > h1.entry-title").text(),
         slug,
+        anime_slug: formatSlug("anime", $(".all-eps-btn > a").attr("href") || ""),
         image: $(".areainfo > .thumb > img").attr("src"),
         synopsis: $(".infox > .desc").text().replace(/\s+/g, ' ').trim(),
         previousStreaming: ((_a = $(".nvs > a").attr("href")) === null || _a === void 0 ? void 0 : _a.split("/")[3]) || "#",

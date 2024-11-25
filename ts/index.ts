@@ -72,6 +72,7 @@ interface Iframe {
 
 interface Streaming extends Anime {
     anime?:string,
+    anime_slug:string,
     nextStreaming?:string,
     previousStreaming?:string,
     iframe:Iframe[],
@@ -233,6 +234,7 @@ app.get("/episode/:slug/",async (req:Request,res:Response) => {
         anime:$(".infox > .entry-title").text().replace("Sinopsis Anime ","").replace(" Indo",""),
         title:$(".lm > h1.entry-title").text(),
         slug,
+        anime_slug:formatSlug("anime",$(".all-eps-btn > a").attr("href") || ""),
         image:$(".areainfo > .thumb > img").attr("src"),
         synopsis:$(".infox > .desc").text().replace(/\s+/g, ' ').trim(),
         previousStreaming:$(".nvs > a").attr("href")?.split("/")[3] || "#",
