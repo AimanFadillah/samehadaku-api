@@ -288,7 +288,6 @@ app.get("/anime", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     }
 }));
 app.get("/anime/:slug", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a, _b, _c, _d, _e, _f;
     const slug = req.params.slug;
     const response = yield configAxios(`/anime/${slug}/`);
     const $ = cheerio.load(response.data);
@@ -312,39 +311,56 @@ app.get("/anime/:slug", (req, res) => __awaiter(void 0, void 0, void 0, function
             slug: ((_a = $(li).find(".epsleft > .lchx > a").attr("href")) === null || _a === void 0 ? void 0 : _a.split("/")[3]) || "",
         });
     });
-    const producers = [];
-    $(".spe > span").eq(10).find("a").each((index, a) => {
-        producers.push({
-            title: $(a).text(),
-            slug: formatSlug("producers", $(a).attr("href") || "")
-        });
-    });
-    const anime = {
-        title: $("h1.entry-title").text(),
-        image: $(".infoanime > .thumb > img").attr("src"),
-        slug: formatSlug("anime", (response.config.url) || ""),
-        rating: $(".clearfix > span").text(),
-        synopsis: $(".entry-content > p").text(),
-        type: ((_a = $(".spe > span").eq(4).html()) === null || _a === void 0 ? void 0 : _a.split("\u003C/b\u003E")[1].trim()) || "",
-        duration: ((_b = $(".spe > span").eq(6).html()) === null || _b === void 0 ? void 0 : _b.split("\u003C/b\u003E")[1].trim()) || "",
-        season: {
-            title: $(".spe > span").eq(8).find("a").text(),
-            slug: formatSlug("season", $(".spe > span").eq(8).find("a").attr("href") || "")
-        },
-        // synopsis:$(".spe > span").eq(1).html()?.split("\u003C/b\u003E")[1].trim() || "",
-        status: ((_c = $(".spe > span").eq(3).html()) === null || _c === void 0 ? void 0 : _c.split("\u003C/b\u003E")[1].trim()) || "",
-        source: ((_d = $(".spe > span").eq(5).html()) === null || _d === void 0 ? void 0 : _d.split("\u003C/b\u003E")[1].trim()) || "",
-        total_episode: ((_e = $(".spe > span").eq(7).html()) === null || _e === void 0 ? void 0 : _e.split("\u003C/b\u003E")[1].trim()) || "",
-        studio: {
-            title: $(".spe > span").eq(9).find("a").text(),
-            slug: formatSlug("studio", $(".spe > span").eq(9).find("a").attr("href") || "")
-        },
-        released: ((_f = $(".spe > span").eq(11).html()) === null || _f === void 0 ? void 0 : _f.split("\u003C/b\u003E")[1].trim()) || "",
-        trailer: $(".player-embed > iframe").attr("src") || "",
-        genre,
-        producers,
-        episode
+    const detailAnime = {
+        japanese: '',
+        english: '',
+        status: '',
+        type: '',
+        source: '',
+        duration: '',
+        total_episode: '',
+        season: null,
+        studio: null,
+        producers: null,
+        released: ''
     };
+    $(".spe > span").each((index, span) => {
+        var _a;
+        const split = (_a = $(span).html()) === null || _a === void 0 ? void 0 : _a.split("</b>");
+        if (split && split[0] && split[1]) {
+            const key = split[0].replace("<b>", "").trim().toLocaleLowerCase().replace(" ", "-").replace(":", "");
+            if (key === "japanese" ||
+                key === "english" ||
+                key === "status" ||
+                key === "type" ||
+                key === "source" ||
+                key === "duration" ||
+                key === "total_episode" ||
+                key === "released") {
+                detailAnime[key] = split[1].trim();
+            }
+            else if (key === "season" ||
+                key === "studio") {
+                detailAnime[key] = {
+                    title: $(span).find("a").text(),
+                    slug: formatSlug(key, $(span).find("a").attr("href") || "")
+                };
+            }
+            else if (key === "producers") {
+                const producers = [];
+                $(span).find("a").each((index, a) => {
+                    producers.push({
+                        title: $(a).text(),
+                        slug: formatSlug("producers", $(a).attr("href") || "")
+                    });
+                });
+                detailAnime[key] = producers;
+            }
+        }
+    });
+    console.log(detailAnime);
+    const anime = Object.assign(Object.assign({ title: $("h1.entry-title").text(), image: $(".infoanime > .thumb > img").attr("src"), slug: formatSlug("anime", (response.config.url) || ""), rating: $(".clearfix > span").text(), synopsis: $(".entry-content > p").text(), trailer: $(".player-embed > iframe").attr("src") || "" }, detailAnime), { genre,
+        episode });
     return res.json(anime);
 }));
 app.get("/iframe", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
